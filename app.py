@@ -27,8 +27,7 @@ class UserModel(db.Document):
 
 class Users(Resource):
     def get(self):
-        return UserModel.objects()
-        # return {'message': 'user 1'}
+        return {'message': 'user 1'}
 
 class User(Resource):
     def post(self):
