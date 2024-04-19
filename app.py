@@ -1,6 +1,9 @@
 from flask import Flask
 from flask_restful import Resource, Api, reqparse
 from flask_mongoengine import MongoEngine
+from mongoengine import NotUniqueError
+import re
+
 
 
 app = Flask(__name__)
@@ -48,7 +51,7 @@ api = Api(app)
 db  = MongoEngine(app)
 
 class UserModel(db.Document):
-    cpf = db.StringField(required=True)
+    cpf = db.StringField(required=True, unique=True)
     first_name = db.StringField(required=True)
     last_name = db.StringField(required=True)
     email = db.EmailField(required=True)
@@ -61,9 +64,47 @@ class Users(Resource):
         return {'message': 'user 1'}
 
 class User(Resource):
+
+    def validade_cpf(self, cpf):
+
+        # Has the correct mask?
+        if not re.match(r'\d{3}\.\d{3}\.\d{3}-\d{2}', cpf):
+            return False
+
+        # Grab only numbers
+        numbers = [int(digit) for digit in cpf if digit.isdigit()]
+
+        # Does it have 11 digits?
+        if len(numbers) != 11 or len(set(numbers)) == 1:
+            return False
+
+        # Validate first digit after -
+        sum_of_products = sum(a*b for a, b in zip(numbers[0:9],
+                                                  range(10, 1, -1)))
+        expected_digit = (sum_of_products * 10 % 11) % 10
+        if numbers[9] != expected_digit:
+            return False
+
+        # Validate second digit after -
+        sum_of_products = sum(a*b for a, b in zip(numbers[0:10],
+                                                  range(11, 1, -1)))
+        expected_digit = (sum_of_products * 10 % 11) % 10
+        if numbers[10] != expected_digit:
+            return False
+
+        return True
+
     def post(self):
         data = user_parser.parse_args()
-        UserModel(**data).save()
+
+        if not self.validade_cpf(data["cpf" ]):
+            return {"message": "CPF is invalid!"}, 400
+        
+        try:
+            response = UserModel(**data).save()
+            return {"message": "User %s sucessfully created!" % response.id}
+        except NotUniqueError:
+            return {"message": "CPF already exists in database!"}, 400
     
     def get(self, cpf):
         return {"message": "CPF"}
