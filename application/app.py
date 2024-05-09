@@ -92,3 +92,18 @@ class User(Resource):
         return {"message": "User does not exist in database!"}, 400
 
 
+    def patch(self):
+        data = user_parser.parse_args()
+
+        if not self.validade_cpf(data["cpf" ]):
+            return {"message": "CPF is invalid!"}, 400
+        
+        response = UserModel.objects(cpf=data["cpf"])
+        if response:
+            response.update(**data)
+            return {"message": "User update"}, 400
+        else:
+            return {"message": "User does not exist in database!"}, 400
+
+
+
