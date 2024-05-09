@@ -1,4 +1,4 @@
-APP = restapi
+APP = gleydson-restapi
 
 test:
 	@pytest -v --disable-warnings
@@ -10,5 +10,5 @@ compose:
 
 heroku:
 	@heroku container:login
-	@heroku container:push -a gleydson-restapi web
-	@heroku container:release -a gleydson-restapi web
+	@heroku container:push -a $(APP) web
+	@heroku container:release -a $(APP) web
