@@ -1,6 +1,7 @@
 APP = gleydson-restapi
 
 test:
+	@bandit -r . -x '/.venv/','/tests/'
 	@black .
 	@pytest -v --disable-warnings
 	@flake8  . --exclude .venv
