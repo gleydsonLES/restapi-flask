@@ -1,8 +1,9 @@
 APP = gleydson-restapi
 
 test:
+	@black .
 	@pytest -v --disable-warnings
-	#@flake8  . --exclude .venv
+	@flake8  . --exclude .venv
 
 compose:
 	@docker-compose build
